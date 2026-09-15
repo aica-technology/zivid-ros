@@ -37,7 +37,9 @@
 #include <Zivid/Image.h>
 #include <Zivid/Settings2D.h>
 #include <Zivid/Version.h>
+#if __has_include(<image_transport/version.h>)
 #include <image_transport/version.h>
+#endif
 
 #include <cstdint>
 #include <map>
