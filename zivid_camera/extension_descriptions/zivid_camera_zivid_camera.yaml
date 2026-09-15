@@ -1,0 +1,69 @@
+schema: 1-0-2
+name: Zivid Camera
+description:
+  brief: Capture color and depth images from a Zivid 3D camera
+  details: >
+    This component launches the official Zivid ROS 2 driver. Color and depth images are published
+    after calling the capture service. Provide 3D capture settings with settings_file_path or
+    settings_yaml. The first available camera is used when serial_number is left empty.
+inherits: rclcpp::Node
+class: zivid_camera::ZividCamera
+type: component
+parameters:
+  - display_name: Serial Number
+    description: Serial number of the camera. Leave empty to use the first available camera.
+    parameter_name: serial_number
+    parameter_type: string
+    default_value: null
+    optional: true
+  - display_name: Frame ID
+    description: Frame ID used on published messages
+    parameter_name: frame_id
+    parameter_type: string
+    default_value: zivid_optical_frame
+  - display_name: Settings file path
+    description: Path to a 3D capture settings YAML file. Mutually exclusive with settings_yaml.
+    parameter_name: settings_file_path
+    parameter_type: string
+    default_value: null
+    optional: true
+  - display_name: Settings YAML
+    description: 3D capture settings as a YAML string. Mutually exclusive with settings_file_path.
+    parameter_name: settings_yaml
+    parameter_type: string
+    default_value: null
+    optional: true
+  - display_name: Color space
+    description: Color space used when publishing color images
+    parameter_name: color_space
+    parameter_type: string
+    default_value: linear_rgb
+    validation:
+      options:
+        - [linear_rgb, srgb]
+outputs:
+  - display_name: Color Image
+    description: Color image published after capture
+    signal_name: color_image
+    signal_type: external
+    external_signal_type: sensor_msgs::msg::Image
+  - display_name: Color Camera Info
+    description: Color camera intrinsics
+    signal_name: color_camera_info
+    signal_type: external
+    external_signal_type: sensor_msgs::msg::CameraInfo
+  - display_name: Depth Image
+    description: Depth image in meters, published after capture
+    signal_name: depth_image
+    signal_type: external
+    external_signal_type: sensor_msgs::msg::Image
+  - display_name: Depth Camera Info
+    description: Depth camera intrinsics
+    signal_name: depth_camera_info
+    signal_type: external
+    external_signal_type: sensor_msgs::msg::CameraInfo
+services:
+  - display_name: Capture
+    description: Trigger a 3D capture and publish color and depth images
+    service_name: capture
+    service_type: empty
