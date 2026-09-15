@@ -181,11 +181,11 @@ protected:
   static constexpr auto projection_status = "projection/status";
   static constexpr auto projection_stop = "projection/stop";
 
-  static constexpr auto color_camera_info_topic_name = "color/camera_info";
-  static constexpr auto color_image_color_topic_name = "color/image_color";
-  static constexpr auto depth_camera_info_topic_name = "depth/camera_info";
-  static constexpr auto depth_image_topic_name = "depth/image";
-  static constexpr auto snr_camera_info_topic_name = "depth/camera_info";
+  static constexpr auto color_camera_info_topic_name = "color_camera_info";
+  static constexpr auto color_image_color_topic_name = "color_image";
+  static constexpr auto depth_camera_info_topic_name = "depth_camera_info";
+  static constexpr auto depth_image_topic_name = "depth_image";
+  static constexpr auto snr_camera_info_topic_name = "depth_camera_info";
   static constexpr auto snr_image_topic_name = "snr/image";
   static constexpr auto points_xyz_topic_name = "points/xyz";
   static constexpr auto points_xyzrgba_topic_name = "points/xyzrgba";
