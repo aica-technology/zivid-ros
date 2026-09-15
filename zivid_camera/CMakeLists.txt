@@ -104,6 +104,10 @@ install(DIRECTORY include/ DESTINATION include)
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
 install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 
+include(InstallAicaDescriptions)
+install_aica_descriptions(./component_descriptions ${CMAKE_INSTALL_PREFIX}/component_descriptions)
+install_aica_descriptions(./extension_descriptions ${CMAKE_INSTALL_PREFIX}/extension_descriptions)
+
 ament_export_targets(${ZIVID_DRIVER_TARGETS_EXPORT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(rclcpp_components ${ZIVID_DRIVER_DEPENDENCIES})
 

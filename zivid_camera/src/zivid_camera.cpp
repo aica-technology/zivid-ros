@@ -37,7 +37,9 @@
 #include <Zivid/Image.h>
 #include <Zivid/Settings2D.h>
 #include <Zivid/Version.h>
+#if __has_include(<image_transport/version.h>)
 #include <image_transport/version.h>
+#endif
 
 #include <cstdint>
 #include <map>
@@ -378,10 +380,14 @@ ZividCamera::ZividCamera(
   normals_xyz_publisher_ = create_publisher<sensor_msgs::msg::PointCloud2>(
     "normals/xyz", getQoSLatched(use_latched_publisher_for_normals_xyz_));
 
-  color_image_publisher_ =
-    createCameraPublisher("color/image_color", use_latched_publisher_for_color_image_);
-  depth_image_publisher_ =
-    createCameraPublisher("depth/image", use_latched_publisher_for_depth_image_);
+  color_image_publisher_ = createImagePublisher(
+    getTopicName("color_image"), use_latched_publisher_for_color_image_);
+  color_camera_info_publisher_ = create_publisher<sensor_msgs::msg::CameraInfo>(
+    getTopicName("color_camera_info"), getQoSLatched(use_latched_publisher_for_color_image_));
+  depth_image_publisher_ = createImagePublisher(
+    getTopicName("depth_image"), use_latched_publisher_for_depth_image_);
+  depth_camera_info_publisher_ = create_publisher<sensor_msgs::msg::CameraInfo>(
+    getTopicName("depth_camera_info"), getQoSLatched(use_latched_publisher_for_depth_image_));
   snr_image_publisher_ = createCameraPublisher("snr/image", use_latched_publisher_for_snr_image_);
 
   RCLCPP_INFO(get_logger(), "Advertising services");
@@ -841,7 +847,8 @@ void ZividCamera::publishColorImage(
           std::to_string(static_cast<int>(color_space)));
     }
   }();
-  color_image_publisher_.publish(image, camera_info);
+  color_image_publisher_.publish(image);
+  color_camera_info_publisher_->publish(*camera_info);
 }
 
 void ZividCamera::publishColorImage(
@@ -853,7 +860,8 @@ void ZividCamera::publishColorImage(
     get_logger(), "Publishing " << color_image_publisher_.getTopic() << " from linear RGB image");
   auto msg =
     makeImageFromZividImage<Zivid::ColorRGBA>(image, header, sensor_msgs::image_encodings::RGBA8);
-  color_image_publisher_.publish(msg, camera_info);
+  color_image_publisher_.publish(msg);
+  color_camera_info_publisher_->publish(*camera_info);
 }
 
 void ZividCamera::publishColorImage(
@@ -865,7 +873,8 @@ void ZividCamera::publishColorImage(
     get_logger(), "Publishing " << color_image_publisher_.getTopic() << " from sRGB image");
   auto msg = makeImageFromZividImage<Zivid::ColorRGBA_SRGB>(
     image, header, sensor_msgs::image_encodings::RGBA8);
-  color_image_publisher_.publish(msg, camera_info);
+  color_image_publisher_.publish(msg);
+  color_camera_info_publisher_->publish(*camera_info);
 }
 
 void ZividCamera::publishDepthImage(
@@ -876,7 +885,8 @@ void ZividCamera::publishDepthImage(
   RCLCPP_INFO_STREAM(get_logger(), "Publishing " << depth_image_publisher_.getTopic());
   auto image = makePointCloudImage<Zivid::PointZ>(
     point_cloud, header, sensor_msgs::image_encodings::TYPE_32FC1);
-  depth_image_publisher_.publish(image, camera_info);
+  depth_image_publisher_.publish(image);
+  depth_camera_info_publisher_->publish(*camera_info);
 }
 
 void ZividCamera::publishSnrImage(
@@ -1044,6 +1054,25 @@ image_transport::CameraPublisher ZividCamera::createCameraPublisher(
   return image_transport::create_camera_publisher(
     this, topic, getQoSLatched(use_latched_publisher).get_rmw_qos_profile());
 #endif
+}
+
+image_transport::Publisher ZividCamera::createImagePublisher(
+  const std::string & topic, bool use_latched_publisher)
+{
+#if (IMAGE_TRANSPORT_VERSION_MAJOR > 6) || \
+  (IMAGE_TRANSPORT_VERSION_MAJOR == 6 && IMAGE_TRANSPORT_VERSION_MINOR >= 4)
+  return image_transport::create_publisher(*this, topic, getQoSLatched(use_latched_publisher));
+#else
+  return image_transport::create_publisher(
+    this, topic, getQoSLatched(use_latched_publisher).get_rmw_qos_profile());
+#endif
+}
+
+std::string ZividCamera::getTopicName(const std::string & signal_name)
+{
+  const auto parameter_name = signal_name + "_topic";
+  declare_parameter<std::string>(parameter_name, "~/" + signal_name);
+  return get_parameter(parameter_name).as_string();
 }
 }  // namespace zivid_camera
 
