@@ -407,7 +407,7 @@ ZividCamera::ZividCamera(
     "is_connected", std::bind(&ZividCamera::isConnectedServiceHandler, this, _1, _2, _3));
 
   capture_service_ = create_service<std_srvs::srv::Trigger>(
-    "capture", std::bind(&ZividCamera::captureServiceHandler, this, _1, _2, _3));
+    getServiceName("capture"), std::bind(&ZividCamera::captureServiceHandler, this, _1, _2, _3));
 
   capture_and_save_service_ = create_service<zivid_interfaces::srv::CaptureAndSave>(
     "capture_and_save", std::bind(&ZividCamera::captureAndSaveServiceHandler, this, _1, _2, _3));
@@ -1072,6 +1072,13 @@ std::string ZividCamera::getTopicName(const std::string & signal_name)
 {
   const auto parameter_name = signal_name + "_topic";
   declare_parameter<std::string>(parameter_name, "~/" + signal_name);
+  return get_parameter(parameter_name).as_string();
+}
+
+std::string ZividCamera::getServiceName(const std::string & service_name)
+{
+  const auto parameter_name = service_name + "_service";
+  declare_parameter<std::string>(parameter_name, "~/" + service_name);
   return get_parameter(parameter_name).as_string();
 }
 }  // namespace zivid_camera

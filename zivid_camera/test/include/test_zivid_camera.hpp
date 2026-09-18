@@ -168,7 +168,7 @@ protected:
   static constexpr auto default_service_timeout{std::chrono::seconds{10}};
   static constexpr auto capture_service_timeout{std::chrono::seconds{20}};
   static constexpr auto hand_eye_calibration_load_service_timeout{std::chrono::seconds{30}};
-  static constexpr auto capture_service_name = "capture";
+  std::string capture_service_name;
   static constexpr auto capture_and_save_service_name = "capture_and_save";
   static constexpr auto capture_2d_service_name = "capture_2d";
   static constexpr auto capture_assistant_suggest_settings_service_name =
@@ -181,11 +181,11 @@ protected:
   static constexpr auto projection_status = "projection/status";
   static constexpr auto projection_stop = "projection/stop";
 
-  static constexpr auto color_camera_info_topic_name = "color_camera_info";
-  static constexpr auto color_image_color_topic_name = "color_image";
-  static constexpr auto depth_camera_info_topic_name = "depth_camera_info";
-  static constexpr auto depth_image_topic_name = "depth_image";
-  static constexpr auto snr_camera_info_topic_name = "depth_camera_info";
+  std::string color_camera_info_topic_name;
+  std::string color_image_color_topic_name;
+  std::string depth_camera_info_topic_name;
+  std::string depth_image_topic_name;
+  std::string snr_camera_info_topic_name;
   static constexpr auto snr_image_topic_name = "snr/image";
   static constexpr auto points_xyz_topic_name = "points/xyz";
   static constexpr auto points_xyzrgba_topic_name = "points/xyzrgba";
@@ -198,14 +198,27 @@ protected:
   static constexpr auto parameter_color_space = "color_space";
   static constexpr auto parameter_intrinsics_source = "intrinsics_source";
 
+  static std::string qualifiedName(const rclcpp::Node & node, const std::string & name)
+  {
+    return std::string(node.get_fully_qualified_name()) + "/" + name;
+  }
+
   ZividNodeTest(
     FileCameraMode file_camera_mode = FileCameraMode::Default,
     NodeReusePolicy camera_node_reuse_policy = NodeReusePolicy::AllowReuse)
   : test_node_(rclcpp::Node::make_shared("test_node"))
   {
     executor_.add_node(test_node_);
-    executor_.add_node(
-      ZividCameraNodeWrapper::getOrConstruct(file_camera_mode, camera_node_reuse_policy));
+    auto camera_node =
+      ZividCameraNodeWrapper::getOrConstruct(file_camera_mode, camera_node_reuse_policy);
+    executor_.add_node(camera_node);
+
+    capture_service_name = qualifiedName(*camera_node, "capture");
+    color_camera_info_topic_name = qualifiedName(*camera_node, "color_camera_info");
+    color_image_color_topic_name = qualifiedName(*camera_node, "color_image");
+    depth_camera_info_topic_name = qualifiedName(*camera_node, "depth_camera_info");
+    depth_image_topic_name = qualifiedName(*camera_node, "depth_image");
+    snr_camera_info_topic_name = qualifiedName(*camera_node, "depth_camera_info");
 
     // Reset test state
     setNodeParameter(parameter_settings_file_path, "");
@@ -417,14 +430,14 @@ Settings2D:
   public:
     explicit AllCaptureTopicsSubscriber(ZividNodeTest & nodeTest)
     : color_camera_info_sub_(
-        nodeTest.subscribe<sensor_msgs::msg::CameraInfo>(color_camera_info_topic_name)),
+        nodeTest.subscribe<sensor_msgs::msg::CameraInfo>(nodeTest.color_camera_info_topic_name)),
       color_image_color_sub_(
-        nodeTest.subscribe<sensor_msgs::msg::Image>(color_image_color_topic_name)),
+        nodeTest.subscribe<sensor_msgs::msg::Image>(nodeTest.color_image_color_topic_name)),
       depth_camera_info_sub_(
-        nodeTest.subscribe<sensor_msgs::msg::CameraInfo>(depth_camera_info_topic_name)),
-      depth_image_sub_(nodeTest.subscribe<sensor_msgs::msg::Image>(depth_image_topic_name)),
+        nodeTest.subscribe<sensor_msgs::msg::CameraInfo>(nodeTest.depth_camera_info_topic_name)),
+      depth_image_sub_(nodeTest.subscribe<sensor_msgs::msg::Image>(nodeTest.depth_image_topic_name)),
       snr_camera_info_sub_(
-        nodeTest.subscribe<sensor_msgs::msg::CameraInfo>(snr_camera_info_topic_name)),
+        nodeTest.subscribe<sensor_msgs::msg::CameraInfo>(nodeTest.snr_camera_info_topic_name)),
       snr_image_sub_(nodeTest.subscribe<sensor_msgs::msg::Image>(snr_image_topic_name)),
       points_xyz_sub_(nodeTest.subscribe<sensor_msgs::msg::PointCloud2>(points_xyz_topic_name)),
       points_xyzrgba_sub_(
@@ -462,9 +475,9 @@ Settings2D:
   public:
     explicit AllCapture2DTopicsSubscriber(ZividNodeTest & node_test)
     : color_camera_info_sub_(
-        node_test.subscribe<sensor_msgs::msg::CameraInfo>(color_camera_info_topic_name)),
+        node_test.subscribe<sensor_msgs::msg::CameraInfo>(node_test.color_camera_info_topic_name)),
       color_image_color_sub_(
-        node_test.subscribe<sensor_msgs::msg::Image>(color_image_color_topic_name))
+        node_test.subscribe<sensor_msgs::msg::Image>(node_test.color_image_color_topic_name))
     {
     }
 

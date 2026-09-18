@@ -181,6 +181,7 @@ private:
   image_transport::Publisher createImagePublisher(
     const std::string & topic, bool use_latched_publisher);
   std::string getTopicName(const std::string & signal_name);
+  std::string getServiceName(const std::string & service_name);
 
   friend class ControllerInterface;
 
