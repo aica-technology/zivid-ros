@@ -31,6 +31,7 @@
 #include <image_transport/image_transport.hpp>
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <std_srvs/srv/trigger.hpp>
@@ -177,6 +178,10 @@ private:
     const Zivid::Frame & frame, const std::string & file_name, ColorSpace color_space);
   image_transport::CameraPublisher createCameraPublisher(
     const std::string & topic, bool use_latched_publisher);
+  image_transport::Publisher createImagePublisher(
+    const std::string & topic, bool use_latched_publisher);
+  std::string getTopicName(const std::string & signal_name);
+  std::string getServiceName(const std::string & service_name);
 
   friend class ControllerInterface;
 
@@ -191,8 +196,10 @@ private:
   bool use_latched_publisher_for_normals_xyz_{false};
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr points_xyz_publisher_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr points_xyzrgba_publisher_;
-  image_transport::CameraPublisher color_image_publisher_;
-  image_transport::CameraPublisher depth_image_publisher_;
+  image_transport::Publisher color_image_publisher_;
+  rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr color_camera_info_publisher_;
+  image_transport::Publisher depth_image_publisher_;
+  rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr depth_camera_info_publisher_;
   image_transport::CameraPublisher snr_image_publisher_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr normals_xyz_publisher_;
   rclcpp::Service<zivid_interfaces::srv::CameraInfoSerialNumber>::SharedPtr
