@@ -23,6 +23,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
+find_package(modulo_interfaces REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(tf2 REQUIRED)
@@ -65,6 +66,7 @@ target_link_libraries(${ZIVID_DRIVER_COMPONENT_NAME} PUBLIC
   ${sensor_msgs_TARGETS}
   ${std_msgs_TARGETS}
   ${std_srvs_TARGETS}
+  ${modulo_interfaces_TARGETS}
   ${zivid_interfaces_TARGETS}
   image_transport::image_transport
   rclcpp_components::component
@@ -87,6 +89,7 @@ set(ZIVID_DRIVER_DEPENDENCIES
   sensor_msgs
   std_msgs
   std_srvs
+  modulo_interfaces
   tf2
   tf2_geometry_msgs
   tf2_ros
@@ -140,6 +143,7 @@ if(BUILD_TESTING)
       ${sensor_msgs_TARGETS}
       ${std_msgs_TARGETS}
       ${zivid_interfaces_TARGETS}
+      ${modulo_interfaces_TARGETS}
       image_transport::image_transport
       rclcpp::rclcpp
       sensor_msgs::sensor_msgs_library

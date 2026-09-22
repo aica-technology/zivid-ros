@@ -122,7 +122,7 @@ std::shared_ptr<zivid_camera::ZividCamera> ZividCameraNodeWrapper::m_zividRosNod
 
 TEST_F(ZividNodeTest, testCaptureServiceReady)
 {
-  auto client = test_node_->create_client<std_srvs::srv::Trigger>(capture_service_name);
+  auto client = test_node_->create_client<modulo_interfaces::srv::EmptyTrigger>(capture_service_name);
   ASSERT_TRUE(client->wait_for_service(std::chrono::seconds{45}));
 }
 
@@ -162,8 +162,9 @@ TEST_F(ZividNodeTest, testServiceIsConnected)
 TEST_F(ZividNodeTest, testCaptureConfigurationErrorIfBothPathAndYmlSet)
 {
   auto run_test = [&](
-                    const auto & service_name, const std::string & path_param,
-                    const std::string & yml_param, const auto & yml_content) {
+                    const auto & do_trigger, const auto & service_name,
+                    const std::string & path_param, const std::string & yml_param,
+                    const auto & yml_content) {
     auto color_image_sub = subscribe<sensor_msgs::msg::Image>(color_image_color_topic_name);
     auto assert_num_topics_received = [&](auto num_topics) {
       ASSERT_EQ(color_image_sub.numMessages(), num_topics);
@@ -178,45 +179,46 @@ TEST_F(ZividNodeTest, testCaptureConfigurationErrorIfBothPathAndYmlSet)
 
     setNodeParameter(path_param, "");
     setNodeParameter(yml_param, "");
-    verifyTriggerResponseError(doStdSrvsTriggerRequest(service_name), expectedErrorBothEmpty);
+    verifyTriggerResponseError(do_trigger(service_name), expectedErrorBothEmpty);
     executor_.spin_some();
     assert_num_topics_received(0);
 
     auto tmp_file = TmpFile("settings.yml", yml_content);
     setNodeParameter(path_param, tmp_file.string());
     setNodeParameter(yml_param, yml_content);
-    verifyTriggerResponseError(doStdSrvsTriggerRequest(service_name), expectedErrorBothSet);
+    verifyTriggerResponseError(do_trigger(service_name), expectedErrorBothSet);
     assert_num_topics_received(0);
 
     setNodeParameter(path_param, "");
-    verifyTriggerResponseSuccess(doStdSrvsTriggerRequest(service_name));
+    verifyTriggerResponseSuccess(do_trigger(service_name));
     executor_.spin_some();
     assert_num_topics_received(1);
 
     setNodeParameter(path_param, tmp_file.string());
     setNodeParameter(yml_param, "");
-    verifyTriggerResponseSuccess(doStdSrvsTriggerRequest(service_name));
+    verifyTriggerResponseSuccess(do_trigger(service_name));
     executor_.spin_some();
     assert_num_topics_received(2);
 
     setNodeParameter(path_param, tmp_file.string());
     setNodeParameter(yml_param, yml_content);
-    verifyTriggerResponseError(doStdSrvsTriggerRequest(service_name), expectedErrorBothSet);
+    verifyTriggerResponseError(do_trigger(service_name), expectedErrorBothSet);
     executor_.spin_some();
     assert_num_topics_received(2);
 
     setNodeParameter(path_param, "");
     setNodeParameter(yml_param, "");
-    verifyTriggerResponseError(doStdSrvsTriggerRequest(service_name), expectedErrorBothEmpty);
+    verifyTriggerResponseError(do_trigger(service_name), expectedErrorBothEmpty);
     executor_.spin_some();
     assert_num_topics_received(2);
     // Leave both path and yml params empty, for the next test
   };
 
   run_test(
-    capture_service_name, parameter_settings_file_path, parameter_settings_yaml,
-    defaultSingleAcquisitionSettingsYml());
+    [this](const std::string &) { return doCaptureTriggerRequest(); }, capture_service_name,
+    parameter_settings_file_path, parameter_settings_yaml, defaultSingleAcquisitionSettingsYml());
   run_test(
+    [this](const std::string & service_name) { return doStdSrvsTriggerRequest(service_name); },
     capture_2d_service_name, parameter_settings_2d_file_path, parameter_settings_2d_yaml,
     defaultSingleAcquisitionSettings2DYml());
 }
@@ -1039,7 +1041,7 @@ protected:
     ASSERT_EQ(points_sub.numMessages(), 0U);
 
     // Triggering capture now should work
-    doStdSrvsTriggerRequest(capture_service_name, capture_service_timeout);
+    doCaptureTriggerRequest(capture_service_timeout);
     executor_.spin_some();
     ASSERT_EQ(points_sub.numMessages(), 1U);
   }

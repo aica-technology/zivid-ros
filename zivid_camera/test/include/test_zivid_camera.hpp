@@ -41,6 +41,7 @@
 #include <geometry_msgs/msg/pose.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
+#include <modulo_interfaces/srv/empty_trigger.hpp>
 #include <std_srvs/srv/trigger.hpp>
 #include <zivid_camera/zivid_camera.hpp>
 #include <zivid_interfaces/msg/detection_result_calibration_board.hpp>
@@ -265,6 +266,13 @@ protected:
     return doEmptySrvRequest<std_srvs::srv::Trigger>(service, timeout);
   }
 
+  decltype(auto) doCaptureTriggerRequest(
+    std::chrono::milliseconds timeout = default_service_timeout)
+  {
+    return doEmptySrvRequest<modulo_interfaces::srv::EmptyTrigger>(
+      capture_service_name, timeout);
+  }
+
   template <typename Type>
   class SubscriptionWrapper
   {
@@ -315,7 +323,7 @@ protected:
     setNodeParameter(parameter_settings_yaml, "");
     auto tmp_file = TmpFile("settings.yml", ymlContent);
     setNodeParameter(parameter_settings_file_path, tmp_file.string());
-    return doStdSrvsTriggerRequest(capture_service_name, capture_service_timeout);
+    return doCaptureTriggerRequest(capture_service_timeout);
   }
 
   decltype(auto) doCapture2DUsingFilePath(const std::string & ymlContent)
@@ -330,7 +338,7 @@ protected:
   {
     setNodeParameter(parameter_settings_file_path, "");
     setNodeParameter(parameter_settings_yaml, yml);
-    return doStdSrvsTriggerRequest(capture_service_name, capture_service_timeout);
+    return doCaptureTriggerRequest(capture_service_timeout);
   }
 
   decltype(auto) doCapture2DUsingYmlString(const std::string & yml)

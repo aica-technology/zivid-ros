@@ -34,6 +34,7 @@
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
+#include <modulo_interfaces/srv/empty_trigger.hpp>
 #include <std_srvs/srv/trigger.hpp>
 #include <string>
 #include <zivid_camera/visibility.hpp>
@@ -112,8 +113,8 @@ private:
     std::shared_ptr<zivid_interfaces::srv::CameraInfoSerialNumber::Response> response);
   void captureServiceHandler(
     const std::shared_ptr<rmw_request_id_t> request_header,
-    const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
-    std::shared_ptr<std_srvs::srv::Trigger::Response> response);
+    const std::shared_ptr<modulo_interfaces::srv::EmptyTrigger::Request> request,
+    std::shared_ptr<modulo_interfaces::srv::EmptyTrigger::Response> response);
   void captureAndSaveServiceHandler(
     const std::shared_ptr<rmw_request_id_t> request_header,
     const std::shared_ptr<zivid_interfaces::srv::CaptureAndSave::Request> request,
@@ -206,7 +207,7 @@ private:
     camera_info_serial_number_service_;
   rclcpp::Service<zivid_interfaces::srv::CameraInfoModelName>::SharedPtr
     camera_info_model_name_service_;
-  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr capture_service_;
+  rclcpp::Service<modulo_interfaces::srv::EmptyTrigger>::SharedPtr capture_service_;
   rclcpp::Service<zivid_interfaces::srv::CaptureAndSave>::SharedPtr capture_and_save_service_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr capture_2d_service_;
   rclcpp::Service<zivid_interfaces::srv::CaptureAssistantSuggestSettings>::SharedPtr

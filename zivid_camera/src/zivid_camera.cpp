@@ -47,6 +47,7 @@
 #include <sensor_msgs/distortion_models.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 #include <sstream>
+#include <modulo_interfaces/srv/empty_trigger.hpp>
 #include <std_srvs/srv/trigger.hpp>
 #include <thread>
 #include <zivid_camera/capture_settings_controller.hpp>
@@ -406,7 +407,7 @@ ZividCamera::ZividCamera(
   is_connected_service_ = create_service<zivid_interfaces::srv::IsConnected>(
     "is_connected", std::bind(&ZividCamera::isConnectedServiceHandler, this, _1, _2, _3));
 
-  capture_service_ = create_service<std_srvs::srv::Trigger>(
+  capture_service_ = create_service<modulo_interfaces::srv::EmptyTrigger>(
     getServiceName("capture"), std::bind(&ZividCamera::captureServiceHandler, this, _1, _2, _3));
 
   capture_and_save_service_ = create_service<zivid_interfaces::srv::CaptureAndSave>(
@@ -529,8 +530,9 @@ void ZividCamera::cameraInfoSerialNumberServiceHandler(
 }
 
 void ZividCamera::captureServiceHandler(
-  const std::shared_ptr<rmw_request_id_t>, const std::shared_ptr<std_srvs::srv::Trigger::Request>,
-  std::shared_ptr<std_srvs::srv::Trigger::Response> response)
+  const std::shared_ptr<rmw_request_id_t>,
+  const std::shared_ptr<modulo_interfaces::srv::EmptyTrigger::Request>,
+  std::shared_ptr<modulo_interfaces::srv::EmptyTrigger::Response> response)
 {
   RCLCPP_INFO_STREAM(get_logger(), __func__);
 
